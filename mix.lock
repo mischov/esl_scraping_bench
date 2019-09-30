@@ -1,0 +1,11 @@
+%{
+  "benchee": {:hex, :benchee, "1.0.1", "66b211f9bfd84bd97e6d1beaddf8fc2312aaabe192f776e8931cb0c16f53a521", [:mix], [{:deep_merge, "~> 1.0", [hex: :deep_merge, optional: false]}]},
+  "deep_merge": {:hex, :deep_merge, "1.0.0", "b4aa1a0d1acac393bdf38b2291af38cb1d4a52806cf7a4906f718e1feb5ee961", [:mix], []},
+  "floki": {:hex, :floki, "0.22.0", "ac0449f1ac9db6769679c84c37ba63e64c64438b48bd0526788add86aabd9e80", [:mix], [{:html_entities, "~> 0.4.0", [hex: :html_entities, optional: false]}, {:mochiweb, "~> 2.15", [hex: :mochiweb, optional: false]}]},
+  "html_entities": {:hex, :html_entities, "0.4.0", "f2fee876858cf6aaa9db608820a3209e45a087c5177332799592142b50e89a6b", [:mix], []},
+  "meeseeks": {:hex, :meeseeks, "0.14.0", "c88bdabcfaf7c2158468c19fe3053f9f4f32222970bf1007a54415f9390ef7e6", [:mix], [{:meeseeks_html5ever, "~> 0.12.1", [hex: :meeseeks_html5ever, repo: "hexpm", optional: false]}], "hexpm"},
+  "meeseeks_html5ever": {:hex, :meeseeks_html5ever, "0.12.1", "718fab10d05b83204524a518b2b88caa37ba6a6e02f82e80d6a7bc47552fb54a", [:mix], [{:rustler, "~> 0.21.0", [hex: :rustler, optional: false]}]},
+  "mochiweb": {:hex, :mochiweb, "2.18.0", "eb55f1db3e6e960fac4e6db4e2db9ec3602cc9f30b86cd1481d56545c3145d2e", [:rebar3], []},
+  "rustler": {:hex, :rustler, "0.21.0", "68cc4fc015d0b9541865ea78e78e9ef2dd91ee4be80bf543fd15791102a45aca", [:mix], [{:toml, "~> 0.5.2", [hex: :toml, optional: false]}]},
+  "toml": {:hex, :toml, "0.5.2", "e471388a8726d1ce51a6b32f864b8228a1eb8edc907a0edf2bb50eab9321b526", [:mix], []},
+}

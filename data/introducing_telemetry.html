@@ -1,0 +1,2213 @@
+
+<!DOCTYPE html>
+
+<!--[if IE 9 ]>    <html class="ie ie9 no-js" lang="en"> <![endif]-->
+<!--[if gt IE 9]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<!-- the "no-js" class is for Modernizr. -->
+
+<head>
+    <link type="text/plain" rel="author" href="/humans.txt" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Introducing Telemetry | Erlang Solution blog</title>
+
+    <meta name="author" content="">
+
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/design/favicon-13104a1a076cb868e2103d4161b6b208d7957897d5d58cc2e9d317116b624263.ico" />
+
+    <link rel="stylesheet" media="all" href="/assets/designs/design-ad7b2dcbd35413c3f8717bc51058ca7505610986521c52b900976c653ec5c102.css" />
+
+    <!-- CSS libraries -->
+    <link rel="alternate" type="application/atom+xml" title="Blog RSS" href="/news.rss" />
+    <link rel="alternate" type="application/atom+xml" title="MongooseIM Blog RSS" href="/mongoose_news.rss" />
+    <script>
+var debug = true;
+var CookieConsent = 'CookieConsent';
+
+function log(msg1, msg2) {
+  if(!debug) { return; }
+  if(typeof msg2 === 'undefined') {
+    console.log(msg1);
+    return;
+  }
+  console.log(msg1, msg2);
+}
+
+function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+ d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function isTrackingAllowed() {
+  var c = getCookie(CookieConsent);
+  return '' === c || '1' === c;
+}
+
+function async_pardot_load() {
+  log('async_pardot_load');
+  var s = document.createElement('script'); s.type = 'text/javascript';
+  s.src = ('https:' == document.location.protocol ? 'https://pi' : 'http://cdn') + '.pardot.com/pd.js';
+  var c = document.getElementsByTagName('script')[0]; c.parentNode.insertBefore(s, c);
+}
+
+function pardotTracking() {
+  log('pardotTracking on');
+  if(window.attachEvent) { window.attachEvent('onload', async_pardot_load); }
+  else { window.addEventListener('load', async_pardot_load, false); }
+}
+</script>
+
+    
+  <meta content="Telemetry is a new open source project aiming at unifying and standardising how the libraries and applications on the BEAM are instrumented and monitored. It is a suite of libraries, developed for the last couple of months by Erlang Solutions in collaboration with the Elixir core team and other contributors. This is an introduction blog to Telemetry. " name="description">
+
+
+    <!-- Google Tag Manager -->
+<script>
+function googleTagManager() {
+log('googleTagManager tracking on');
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KTN9QLQ');
+}
+if(isTrackingAllowed()) { googleTagManager(); }
+</script>
+<!-- End Google Tag Manager -->
+
+</head>
+
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KTN9QLQ"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header>
+  <div class="container">
+    <h1 class="logo">
+      <a href="/home.html"><img alt="Erlang" srcset="/assets/design/logo@2x-903c3dc0dbe25c7806bc5586eba5dc819899690a95429e543136c0a435a1d915.png 2x" src="/assets/design/logo-b052c1ffbdcc48507569f7e4669a064c2d0761823991ce52423ef46c3e7ab3ab.png" /></a>
+    </h1>
+    <div class="menu-toggler">
+      <span class="before"></span>
+      <span class="main">Menu</span>
+      <span class="after"></span>
+    </div>
+    <div class="controls">
+      <form action="/search-results.html" class="search">
+        <input name="q" type="text">
+        <button class="gray-btn circle-btn">
+          <i class="icon-erlang-magnify"></i>
+        </button>
+      </form>
+      <a class="btn download" href="/resources/download.html">
+        <span>Download</span><i class="icon-erlang-download"></i>
+      </a>
+    </div>
+    <ul class="menu">
+          <li class="submenu"><a href="/products.html">Products</a>
+            <ul>
+                <li><a href="/products/rabbitmq.html">RabbitMQ</a></li>
+                <li><a href="/products/emq.html">EMQ</a></li>
+                <li><a href="/products/mongooseim.html">MongooseIM</a></li>
+                <li><a href="/products/wombatoam.html">WombatOAM</a></li>
+                <li><a href="/products/riak.html">Riak</a></li>
+            </ul>
+          </li>
+          <li class="submenu"><a href="/solutions.html">Solutions</a>
+            <ul>
+                <li><a href="/solutions/consulting.html">Consulting</a></li>
+                <li><a href="/solutions/development.html">Development</a></li>
+                <li><a href="/solutions/elixir-development.html">Elixir Development</a></li>
+                <li><a href="/solutions/support.html">Support</a></li>
+            </ul>
+          </li>
+          <li class="submenu"><a href="/training.html">Training</a>
+            <ul>
+                <li><a href="/training/public-training.html">Public Training</a></li>
+                <li><a href="/training/corporate-training.html">Corporate Training</a></li>
+                <li><a href="/training/conference-training.html">Conference Training</a></li>
+                <li><a href="/training/certification.html">Certification</a></li>
+            </ul>
+          </li>
+          <li class="submenu"><a href="/industries.html">Industries</a>
+            <ul>
+                <li><a href="/industries/finance.html">Finance</a></li>
+                <li><a href="/industries/online-gambling-betting.html">Online Gambling &amp; Betting</a></li>
+                <li><a href="/industries/telecoms.html">Telecoms</a></li>
+                <li><a href="/industries/gaming.html">Gaming</a></li>
+                <li><a href="/industries/advertising-media.html">Advertising &amp; Media</a></li>
+                <li><a href="/industries/messaging-social.html">Messaging &amp; Social</a></li>
+            </ul>
+          </li>
+          <li class="submenu"><a href="/resources.html">Resources</a>
+            <ul>
+                <li><a href="/resources/download.html">Download</a></li>
+                <li><a href="/resources/my-topdog-status.html">My Topdog Status</a></li>
+                <li><a href="/resources/case-studies.html">Case Studies</a></li>
+                <li><a href="/resources/brochures.html">Brochures</a></li>
+                <li><a href="/resources/webinars.html">Webinars</a></li>
+                <li><a href="/resources/open-erlang.html">Open Erlang</a></li>
+            </ul>
+          </li>
+          <li><a href="/events.html">Events</a></li>
+          <li class="submenu"><a href="/careers.html">Careers</a>
+            <ul>
+                <li><a href="/careers.html#people">People</a></li>
+                <li><a href="/careers/careers.html">Careers</a></li>
+            </ul>
+          </li>
+          <li><a href="/contact.html">Contact</a></li>
+          <li><a href="/blog.html">Blog</a></li>
+    </ul>
+  </div>
+</header>
+
+
+
+<div class="blog-page">
+  <section class="container">
+    <div class="big-image"
+          style="background-image: url(https://esl-web-static.s3.amazonaws.com/uploads/blog_post/image/198/Telemetry_Blog.jpg);">
+    </div>
+    <article class="blog_post">
+      <h1>Introducing Telemetry</h1>
+      <p class="subheading">
+        <time datetime="2019-04-30">2019-04-30</time>
+        by Arkadiusz Gil
+      </p>
+
+      <h1 id="we-need-monitoring">We need monitoring</h1>
+
+<p>“Let it crash” has been a long-running mantra in the BEAM world. While it might be misinterpreted, there is some merit to it - our software will do unexpected things, and more often than not, the only viable choice is to crash and start over. But simply restarting parts of our application is not sufficient - we should understand what was the cause of the error, and handle it properly in the future releases. We also need to know that the error occurred at all and how it affected our customers! To enable both of these things, we need a way to introspect and analyze our app’s behaviour at runtime - we need monitoring.</p>
+
+<p><a href="https://github.com/beam-telemetry/telemetry">Telemetry</a> is a new open source project aiming at unifying and standardising how the libraries and applications on the BEAM are instrumented and monitored. It is a suite of libraries, developed for the last couple of months by Erlang Solutions in collaboration with the Elixir core team and other contributors. But with existing metrics projects such as <a href="https://github.com/Feuerlabs/exometer">exometer</a> and <a href="https://github.com/boundary/folsom">folsom</a>, which have both served the community well over the years, why would we need yet another solution? It might start to feel like in the popular comic strip:</p>
+
+<p style="text-align:center"><img src="https://i.ibb.co/Xbd6Kfp/Screen-Shot-2019-04-30-at-13-09-12.png" style="width:600px"></p>
+
+<p>By design, Telemetry does not try to cover every use case out there. Rather, it provides a small and simple interface for instrumenting your code, and allows anyone to hook into the instrumentation points at runtime. This enables modularity - projects like <a href="https://hexdocs.pm/ecto/Ecto.Repo.html#module-telemetry-events">Ecto</a> or <a href="https://hexdocs.pm/plug/Plug.Telemetry.html">Plug</a> only need to rely on the <a href="https://github.com/beam-telemetry/telemetry">core library</a>, and engineers building applications can use the data exposed by those libraries for monitoring their systems.</p>
+
+<p>Let’s dive a little bit deeper into the rationale behind Telemetry and its design.</p>
+
+<h1 id="the-tree-has-fallen-in-the-forest">The tree has fallen in the forest..</h1>
+
+<p>At the core of Telemetry lies the event. The event indicates that something has happened: an HTTP request was accepted, a database query returned a result, or the user has signed in. Each event can have many handlers attached to it, each performing a specific action when the event is published. For example, an event handler might update a metric, log some data, or  enrich a context of distributed trace.</p>
+
+<p>This becomes extremely convenient when libraries emit Telemetry events. Usually, we don’t write our own web framework or database client, we use an existing package. The library can provide the instrumentation data via events, and our code can handle it in a way that suits our needs. The only thing we need to do is to implement the handlers and attach them when our application starts!</p>
+
+<p>For example, Ecto since version 3.0.0 publishes an event on each database query. We could write a handler which logs whenever a total query time exceeds 500ms:</p>
+<pre class="highlight plaintext"><code>defmodule MyApp.Monitoring do
+  require Logger
+
+  def log_slow_queries(_event, measurements, metadata, _config) do
+    if System.convert_time_unit(measurements.total_time, :native, :millisecond) &gt; 500 do
+      Logger.warn("Query #{inspect(metadata.query)} completed in #{measurements.total_time}ms")
+    end
+  end
+End
+</code></pre>
+<p>Here <code>measurements</code> and <code>metadata</code> are properties of a single event - each Telemetry event carries these values.</p>
+
+<p>This handler needs to be attached at runtime, for example when our application starts. Assuming that our Ecto repo is called <code>MyApp.Repo</code>, we attach the handler using the code below:</p>
+<pre class="highlight plaintext"><code>:telemetry.attach(
+  "slow-query-logger",
+  [:my_app, :repo, :query],
+  &amp;MyApp.Monitoring.log_slow_queries/4,
+  :no_config
+  )
+</code></pre>
+<p>We specify the name of our handler (which needs to be unique across the system), the event we are attaching it to, the function to be invoked  each time  the event is emitted, and the handler config  which is passed as the last argument to our handler on every invocation.</p>
+
+<h1 id="and-there-was-no-one-around-to-hear-it">..and there was no one around to hear it</h1>
+
+<p>Because Telemetry is designed to have a small performance footprint, there is almost no cost associated with including it even in the most popular Elixir libraries - it is already used by Ecto and Plug, and it is coming to Phoenix soon. Telemetry requires only a single ETS lookup when an event is published, and all handlers are executed synchronously in the process emitting the event, which means that there are no bottlenecks and single points of failure in the whole library.</p>
+
+<h1 id="ecosystem">Ecosystem</h1>
+
+<p>Apart from the core <a href="https://hexdocs.pm/telemetry/index.html">Telemetry library</a>, which provides the interface for emitting and handling events, we have built additional tools addressing common use cases related to monitoring.</p>
+
+<p><a href="https://hexdocs.pm/telemetry_poller/Telemetry.Poller.html">Telemetry.Poller</a> allows you to perform measurements periodically and emit them as Telemetry events. When you include the library in your project, the default Poller process is started, publishing measurements related to the Erlang VM, like memory usage and the length of run queues.</p>
+
+<p><a href="https://hexdocs.pm/telemetry_metrics/overview.html">Telemetry.Metrics</a> provides a bunch of functions for declaring metrics based on the events. For example, the <code>definition counter(&quot;my_app.repo.query&quot;)</code> means that we want to count how many database queries were made by Ecto. Apart from the counter, <code>Telemetry.Metrics</code> also defines some other aggregations: sum, last value (sometimes referred to as gauge) and distribution. It also supports multi-dimensional metrics via tags and unit conversions.</p>
+
+<p>After the metrics are declared, they need to be fed to the reporter, which attaches relevant event handlers and forwards metrics to the monitoring system of choice at runtime. Currently, there are two reporters available on Hex: one for <a href="https://hexdocs.pm/telemetry_metrics_prometheus/overview.html">Prometheus</a> and one for <a href="https://hexdocs.pm/telemetry_metrics_statsd/TelemetryMetricsStatsd.html">StatsD</a>.</p>
+
+<h1 id="what’s-next">What’s next?</h1>
+
+<p>Telemetry core reached a stable API, and now is the right time for including it in libraries, so that their users can benefit from exposed instrumentation data. But we cannot do that on our own - Telemetry is a community run project, and without contributors  it won’t be able to flourish. So we encourage everyone  - Telemetry has had an active group of contributors from the very early days of the project and we would love you to be part of its growth and adoption too. If you want to get involved, you can integrate your own library with Telemetry, build a reporter for <code>Telemetry.Metrics</code>, or give us your feedback on APIs and documentation.</p>
+
+<p>Currently, we’re improving the performance of the core, as well as extending and polishing the Poller and the Metrics. Weare also working on making the existing reporters more performant and stable.</p>
+
+<p>The next big thing we have planned is a metrics dashboard for Phoenix - imagine generating a new Phoenix project, and having a basic dashboard with metrics served by your endpoint, without setting up any external systems. Telemetry allows us to do this and much more in the near future!</p>
+
+<h1 id="upcoming-meetup">Upcoming meetup</h1>
+
+<p>If you would like to learn more about Telemetry, our colleague and core Telemetry contributor Arkadiusz will be speaking at our London BEAM Meetup on Wednesday 8th May. More details and RSVP <a href="https://www.meetup.com/erlangusergroup/events/260695997/">here</a></p>
+
+<h1 id="links">Links</h1>
+
+<ul>
+<li>- <a href="https://github.com/beam-telemetry">beam-telemetry</a> GitHub organization</li>
+<li>- Telemetry core on <a href="https://github.com/beam-telemetry/telemetry">GitHub</a> and <a href="https://hexdocs.pm/telemetry/index.html">HexDocs</a></li>
+<li>- Telemetry.Poller on <a href="https://github.com/beam-telemetry/telemetry">GitHub</a> and <a href="https://hexdocs.pm/telemetry/index.html">HexDocs</a></li>
+<li>- Telemetry.Metrics on <a href="https://github.com/beam-telemetry/telemetry_metrics">GitHub</a> and <a href="https://hexdocs.pm/telemetry_metrics/overview.html">HexDocs</a>
+</ul>
+</p></li>
+</ul>
+
+      <a class="more" href="/blog.html">Go back to the blog</a>
+      <br/>
+      <br/>
+      <div class='tags'>
+<strong>Tags:</strong>
+<a href="/search-results.html?q=Elixir">Elixir</a>
+<a href="/search-results.html?q=BEAM">BEAM</a>
+<a href="/search-results.html?q=open source">open source</a>
+<a href="/search-results.html?q=Telemetry">Telemetry</a>
+</div>
+
+      <div class="action-btns">
+  <div class="share-btn">Share <i class="icon-erlang-share"></i>
+    <ul>
+      <li><a href="http://www.facebook.com/sharer.php?u=https://www.erlang-solutions.com/blog/introducing-telemetry.html"><i class="icon-erlang-facebook"></i> Facebook</a></li>
+      <li><a href="http://twitter.com/share?url=https://www.erlang-solutions.com/blog/introducing-telemetry.html&text=Introducing%20Telemetry"><i class="icon-erlang-twitter"></i> Twitter</a></li>
+      <li><a href="http://www.linkedin.com/shareArticle?mini=true&amp;url=https://www.erlang-solutions.com/blog/introducing-telemetry.html"><i class="icon-erlang-linkedin"></i> Linkedin</a></li>
+      <li><a class="mail-share" href="mailto:?subject=Introducing Telemetry&amp;body=https://www.erlang-solutions.com/blog/introducing-telemetry.html"><i class="icon-erlang-mail"></i> E-mail</a></li>
+    </ul>
+  </div>
+</div>
+
+    </article>
+
+    <div id="disqus_thread"></div>
+    <script>
+      var disqus_config = function () {
+        //this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = "production_blog_198";
+      };
+
+      (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+
+        var environment = window.location.host == "www.erlang-solutions.com" ? '' : 'staging-';
+
+        s.src = '//' + environment + 'erlangsolutionsblog.disqus.com/embed.js';
+
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+  </section>
+</div>
+
+<footer>
+  <div id="form1585" class="container">
+  <div class="newsletter">
+    <h2>Get our Newsletter </h2>
+    <form autocomplete="on"
+          action="/forms/submit"
+          method="post"
+          data-href="form1585"
+          data-handler="https://go.pardot.com/l/23452/2015-08-31/2zxhs5"
+          data-thank-you-page-id="1"
+          class="custom-form">
+      <input type="hidden" name="form_id" id="form_id" value="1" />
+      <input autocomplete="email" placeholder="Enter your e-mail address" name="email" type="email" required>
+      <div style="position:absolute; left:-9999px; top: -9999px;">
+        <label>name <input tabindex="-1" type="text" name="pardot_extra_field"></label>
+      </div>
+      <input value="Subscribe" type="submit">
+    </form>
+  </div>
+</div>
+<section class="social-bar">
+  <h2 class="sr-only">Social bar</h2>
+  <div class="container">
+    <a href="https://twitter.com/erlangsolutions" target="_blank" class="twitter"><i class="icon-erlang-twitter"></i></a>
+    <a href="https://www.linkedin.com/company/207788" target="_blank" class="linkedin"><i class="icon-erlang-linkedin"></i></a>
+    <a href="https://www.facebook.com/ErlangSolutions" target="_blank" class="facebook"><i class="icon-erlang-facebook"></i></a>
+    <a href="https://www.youtube.com/user/ErlangSolutions" target="_blank" class="youtube"><i class="icon-erlang-youtube"></i></a>
+    <a href="https://github.com/esl" target="_blank" class="github"><i class="icon-erlang-github"></i></a>
+    <a href="/resources/download.html" class="download"><i class="icon-erlang-download"></i></a>
+    <a href="/news.rss" target="_blank" class="rss"><i class="icon-erlang-rss"></i></a>
+    <a href="mailto:general@erlang-solutions.com" class="mail"><i class="icon-erlang-mail"></i></a>
+  </div>
+</section>
+<!-- CONTACT SECTION -->
+<section class="contact-section">
+  <div class="container">
+    <div class="copy">
+      <h2>Get in touch</h2>
+
+<p><br />
+Contact us right now to learn more or to ask your question; we are happy to help!&nbsp;<br />
+<br />
+We are over 100 specialists working from London, Stockholm, Krakow, Budapest, San Francisco and Seattle.<br />
+<br />
+<a href="https://www.erlang-solutions.com/contact.html">Our location &gt;</a></p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p><span style="font-size:11px"><em>Erlang Solutions cares about your data and privacy. By submitting this form you agree that your data will be processed according to our <a href="https://www.erlang-solutions.com/privacy-policy.html">Privacy Policy</a>. Update your Marketing email preferences <a href="http://www2.erlang-solutions.com/emailpreference" target="_blank">here</a>.</em></span></p>
+
+    </div>
+    <iframe src="//go.pardot.com/l/23452/2017-01-18/4g14yj" type="text/html" frameborder="0" allowTransparency="true"></iframe>
+  </div>
+</section>
+    <div class="container">
+      <div class="menu">
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category products">
+              <h3><a href="/products.html">Products</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/products/rabbitmq.html">RabbitMQ</a></li>
+                  
+                
+                  
+                    <li><a href="/products/emq.html">EMQ</a></li>
+                  
+                
+                  
+                    <li><a href="/products/mongooseim.html">MongooseIM</a></li>
+                  
+                
+                  
+                    <li><a href="/products/wombatoam.html">WombatOAM</a></li>
+                  
+                
+                  
+                    <li><a href="/products/riak.html">Riak</a></li>
+                  
+                
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category solutions">
+              <h3><a href="/solutions.html">Solutions</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/solutions/consulting.html">Consulting</a></li>
+                  
+                
+                  
+                    <li><a href="/solutions/development.html">Development</a></li>
+                  
+                
+                  
+                    <li><a href="/solutions/elixir-development.html">Elixir Development</a></li>
+                  
+                
+                  
+                    <li><a href="/solutions/support.html">Support</a></li>
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category training">
+              <h3><a href="/training.html">Training</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/training/public-training.html">Public Training</a></li>
+                  
+                
+                  
+                    <li><a href="/training/corporate-training.html">Corporate Training</a></li>
+                  
+                
+                  
+                    <li><a href="/training/conference-training.html">Conference Training</a></li>
+                  
+                
+                  
+                    <li><a href="/training/certification.html">Certification</a></li>
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category industries">
+              <h3><a href="/industries.html">Industries</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/industries/finance.html">Finance</a></li>
+                  
+                
+                  
+                    <li><a href="/industries/online-gambling-betting.html">Online Gambling & Betting</a></li>
+                  
+                
+                  
+                    <li><a href="/industries/telecoms.html">Telecoms</a></li>
+                  
+                
+                  
+                    <li><a href="/industries/gaming.html">Gaming</a></li>
+                  
+                
+                  
+                    <li><a href="/industries/advertising-media.html">Advertising & Media</a></li>
+                  
+                
+                  
+                    <li><a href="/industries/messaging-social.html">Messaging & Social</a></li>
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category resources">
+              <h3><a href="/resources.html">Resources</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/resources/download.html">Download</a></li>
+                  
+                
+                  
+                    <li><a href="/resources/my-topdog-status.html">My Topdog Status</a></li>
+                  
+                
+                  
+                    <li><a href="/resources/case-studies.html">Case Studies</a></li>
+                  
+                
+                  
+                    <li><a href="/resources/brochures.html">Brochures</a></li>
+                  
+                
+                  
+                    <li><a href="/resources/webinars.html">Webinars</a></li>
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                
+                  
+                    <li><a href="/resources/open-erlang.html">Open Erlang</a></li>
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+            <div class="category about">
+              <h3><a href="/careers.html">Careers</a></h3>
+              <ul>
+                
+                  
+                    <li><a href="/careers/careers.html">Careers</a></li>
+                  
+                
+                  
+                
+              </ul>
+            </div>
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+        <div class="category">
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+              <h3><a href="/events.html">Events</a></h3>
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+              <h3><a href="/contact.html">Contact</a></h3>
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+              <h3><a href="/blog.html">Blog</a></h3>
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+            
+            
+            
+          
+        </div>
+      </div>
+    </div>
+
+<div class="container">
+  <div class="copyrights">
+    © All rights reserved 2018 Erlang Solutions Ltd
+<br />Part of Trifork Group | 
+    <span>
+      <a href="/terms-of-use.html">Terms of Use</a> | <a href="/privacy-policy.html">Privacy Policy</a> | <a href="/privacy-policy-candidates.html">Candidate Privacy Policy</a> | <a href="/cookie-policy.html">Cookie Policy </a>
+    </span>
+  </div>
+</div>
+
+  <section id="cookie-banner" class="cookiealert" style="display:none">
+  <div class="container">
+    <div class="cookiealert-text">
+      <p>Erlang Solutions uses cookies to improve and personalise your experience. The site may also include cookies from third parties. By using this site you consent to the use of cookies.</p>
+    </div>
+    <div class="cookiealert-links">
+      <a class="cookiealert-policy" href="/cookie-policy.html">Cookie policy</a>
+      <a class="btn cookiealert-agree" href="#" id="btn-cookie-agree">GOT IT</a>
+      <a class="cookiealert-close btn" href="#" id="btn-cookie-disagree">&times;</a>
+    </div>
+  </div>
+</section>
+
+</footer>
+
+
+
+
+<div id="thanks-request-info" class="thanks-modal md-modal">
+  <div class="md-close">&times;</div>
+  <div class="md-centered md-content md-effect ps-container ps-active-y">
+    <div class="section-description">
+      <div class="icon"><i class="icon-erlang-ask"></i></div>
+      <div id="default-thank-you-message">
+        <h3>Thank you for your message</h3>
+        We sent you a confirmation email to let you know we received it. One of
+        our colleagues will get in touch shortly.<br>
+        Have a nice day!
+      </div>
+      <div id="custom-thank-you-message">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="md-overlay"></div>
+<iframe id="pardot-contact-form-handler" height="0" width="0"></iframe>
+<iframe id="form-tracker" height="0" width="0"></iframe>
+
+<!-- here comes the javascript -->
+<script src="/assets/public-83a17be9ec34aa8847976572f138032f44ff36097cf6f2ffbb922bcbc5a8d9cb.js"></script>
+
+<!-- JS libraries -->
+<script type="text/javascript">
+    piAId = '24452';
+    piCId = '1476';
+
+    (function() {
+        if(isTrackingAllowed()) {
+            pardotTracking();
+        }
+    })();
+</script>
+
+<!-- Custom Scripts -->
+
+</body>
+</html>
